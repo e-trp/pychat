@@ -87,8 +87,8 @@ def settings(x,y):
     name.place(x=100, y=30)
     port.place(x=100, y=60)
     host.place(x=100, y=90)
-    tk.Button(dialog, text='Применить', )
-    tk.Button(dialog, text='Закрыть', command=dialog.destroy).place(x=150, y=170)
+    tk.Button(dialog, text='Apply', ).place(x=100, y=170)
+    tk.Button(dialog, text='Close', command=dialog.destroy).place(x=150, y=170)
 
 main_window = tk.Tk()
 main_window.style = Style()
