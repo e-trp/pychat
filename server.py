@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
-import threading, time, socket, sqlite3, random
+import threading, time, socket
 
 def now():
     return time.ctime(time.time())
@@ -16,7 +16,7 @@ class ChatServer(object):
         self.socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def userlist(self):
-        return [item[0] for item in self.connections]
+        return [conn[0] for conn in self.connections]
 
     def close_connection(self, client):
         for i, conn in enumerate(self.connections):
@@ -51,6 +51,13 @@ class ChatServer(object):
         for i, conn in enumerate(self.connections):
             conn[1].send(msg.encode())
 
+    def send_to_user(self, fromuser, touser, msg):
+        msg='pm {} : {}'.format(fromuser, msg)
+        for username, conn  in self.connections:
+            if touser==username:
+                conn.send(msg.encode())
+
+
 
     def client_handle(self,connection):
         while True:
@@ -59,10 +66,13 @@ class ChatServer(object):
             except ConnectionResetError:
                 break
             if not data: break
-            check=data.decode('utf-8').split(' ')[0]
-            reply=connection[0]+': '+data.decode('utf-8')
-            print("{} {} ".format(now(),reply))
-            self.send_to_all(reply)
+            data=data.decode('utf-8')
+            print(data)
+            check=data.split(' ')[0].rstrip(',')
+            if check[0]=='@':
+                self.send_to_user(connection[0], check[1:], ' '.join(data.split(' ')[1:]) )
+            else:
+                self.send_to_all("{}: {}".format(connection[0], data))
         self.close_connection(connection[1])
 
 if __name__=="__main__":
