@@ -11,7 +11,7 @@ from tkinter.ttk import *
 def make_nickname():
     return ''.join([choice(ascii_lowercase) for x in range(randint(5,10))])
 
-
+#TODO make gui interface as class
 class ApplicationGui(tk.Frame):
     pass
 
@@ -72,6 +72,7 @@ def send_message(clientobj, msg_window):
     client.send_message(message.get())
     msg_window.delete(0,tk.END)
 
+#TODO make settings
 def settings(x,y):
     dialog = tk.Toplevel()
     dialog.geometry('260x200')
@@ -91,8 +92,7 @@ def settings(x,y):
     tk.Button(dialog, text='Close', command=dialog.destroy).place(x=150, y=170)
 
 main_window = tk.Tk()
-main_window.style = Style()
-#('clam', 'alt', 'default', 'classic')
+main_window.style = Style() # try to use more modern window style if possible
 main_window.style.theme_use('default')
 main_window.geometry('500x550')
 main_window.title('Simple tcp chat')

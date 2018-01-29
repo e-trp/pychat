@@ -11,8 +11,8 @@ class ChatServer(object):
     def __init__(self, host='localhost', port=6777):
         self.__host=host
         self.__port=port
-        self.connections=[]        #[ username, socket ]
-        self.commands=dict()
+        self.connections=[]  #[ username, socket ]
+        #self.commands=dict() TODO posibly add some chat commands
         self.socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def userlist(self):
@@ -67,7 +67,6 @@ class ChatServer(object):
                 break
             if not data: break
             data=data.decode('utf-8')
-            print(data)
             check=data.split(' ')[0].rstrip(',')
             if check[0]=='@':
                 self.send_to_user(connection[0], check[1:], ' '.join(data.split(' ')[1:]) )
