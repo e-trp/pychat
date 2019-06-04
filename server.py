@@ -11,55 +11,57 @@ class ChatServer(object):
     def __init__(self, host='localhost', port=6777):
         self.__host=host
         self.__port=port
-        self.connections=[]  #[ username, socket ]
-        #self.commands=dict() TODO posibly add some chat commands
+        self.connections={}
         self.socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.msgs={
+            "start": "Starting server on port {} and host '{}'\n",
+            "connect": "{} user '{}'{} connected",
+            "user_left": "{} user '{}' left from chat",
+            "send_to_all":"{}: {}",
+            "send_pm_to": "pm to {}: {}",
+            "send_pm_from": "pm from {}: {}",
+            "welcome":"Welcome to chat server, please enter your nickname: \r\n"
+        }
 
     def userlist(self):
-        return [conn[0] for conn in self.connections]
+        return self.connections.keys()
 
     def close_connection(self, client):
         for i, conn in enumerate(self.connections):
             if client is conn[1]:
                 self.connections.pop(i)
-                print("{} user '{}' left from chat".format(now(), conn[0]))
+                print(self.msgs["user_left"].format(now(), conn[0]))
         client.close()
         self.send_to_all('!list ' + ' '.join(self.userlist()))
 
 
     def start(self):
-        print("Starting server on port {} and host '{}'\n".format(self.__port, self.__host))
+        print(self.msgs["start"].format(self.__port, self.__host))
         self.socket.bind((self.__host, self.__port))
         self.socket.listen(10)
         while True:
             client_socket, address=self.socket.accept()
             nickname = self.auth(client_socket)
-            connection=[nickname, client_socket]
-            self.connections.append(connection)
+            self.connections[nickname]=[nickname, client_socket]
             self.send_to_all('!list '+' '.join(self.userlist()))
-            print("{} user '{}'{} connected".format(now(),nickname,address) )
-            threading.Thread(target=self.client_handle, args=(connection,)).start()
+            print(self.msgs["connect"].format(now(),nickname,address) )
+            threading.Thread(target=self.client_handle, args=( self.connections[nickname],)).start()
 
     def auth(self, connection):
-        connection.send('Welcome to chat server, please enter your nickname: \r\n'.encode()
-        )
+        connection.send(self.msgs["welcome"].encode())
         data=connection.recv(100)
         nickname=data.decode('utf-8')
         return nickname
 
     def send_to_all(self, msg):
-        for i, conn in enumerate(self.connections):
+        for conn in self.connections.values():
             conn[1].send(msg.encode())
 
     def send_to_user(self, fromuser, touser, msg):
-        msg='pm {} : {}'.format(fromuser, msg)
-        for username, conn  in self.connections:
-            if touser==username:
-                conn.send(msg.encode())
+        self.connections[fromuser][1].send(self.msgs["send_pm_from"].format(self.connections[fromuser][0],msg).encode())
 
 
-
-    def client_handle(self,connection):
+    def client_handle(self, connection):
         while True:
             try:
                 data = connection[1].recv(1024)
@@ -71,7 +73,7 @@ class ChatServer(object):
             if check[0]=='@':
                 self.send_to_user(connection[0], check[1:], ' '.join(data.split(' ')[1:]) )
             else:
-                self.send_to_all("{}: {}".format(connection[0], data))
+                self.send_to_all(self.msgs["send_to_all"].format(connection[0], data))
         self.close_connection(connection[1])
 
 if __name__=="__main__":
