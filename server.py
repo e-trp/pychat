@@ -18,8 +18,7 @@ class ChatServer(object):
             "connect": "{} user '{}'{} connected",
             "user_left": "{} user '{}' left from chat",
             "send_to_all":"{}: {}",
-            "send_pm_to": "pm to {}: {}",
-            "send_pm_from": "pm from {}: {}",
+            "send_pm": "pm from {}: {}",
             "welcome":"Welcome to chat server, please enter your nickname: \r\n"
         }
 
@@ -54,8 +53,8 @@ class ChatServer(object):
         for conn in self.connections.values():
             conn[1].send(msg.encode())
 
-    def send_to_user(self, fromuser, touser, msg):
-        self.connections[fromuser][1].send(self.msgs["send_pm_from"].format(self.connections[fromuser][0],msg).encode())
+    def send_to_user(self, touser, msg):
+        self.connections[touser][1].send(self.msgs["send_pm"].format(self.connections[touser][0],msg).encode())
 
 
     def client_handle(self, connection):
@@ -68,7 +67,7 @@ class ChatServer(object):
             data=data.decode('utf-8')
             check=data.split(' ')[0].rstrip(',')
             if check[0]=='@':
-                self.send_to_user(connection[0], check[1:], ' '.join(data.split(' ')[1:]) )
+                self.send_to_user( check[1:], ' '.join(data.split(' ')[1:]) )
             else:
                 self.send_to_all(self.msgs["send_to_all"].format(connection[0], data))
         self.close_connection(connection)
