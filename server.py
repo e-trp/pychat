@@ -26,12 +26,9 @@ class ChatServer(object):
     def userlist(self):
         return self.connections.keys()
 
-    def close_connection(self, client):
-        for i, conn in enumerate(self.connections):
-            if client is conn[1]:
-                self.connections.pop(i)
-                print(self.msgs["user_left"].format(now(), conn[0]))
-        client.close()
+    def close_connection(self, connection):
+        self.connections.pop(connection[0])
+        print(self.msgs["user_left"].format(now(), connection[0]))
         self.send_to_all('!list ' + ' '.join(self.userlist()))
 
 
@@ -74,7 +71,7 @@ class ChatServer(object):
                 self.send_to_user(connection[0], check[1:], ' '.join(data.split(' ')[1:]) )
             else:
                 self.send_to_all(self.msgs["send_to_all"].format(connection[0], data))
-        self.close_connection(connection[1])
+        self.close_connection(connection)
 
 if __name__=="__main__":
     server=ChatServer()
