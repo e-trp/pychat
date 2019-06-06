@@ -8,6 +8,7 @@ import tkinter as tk
 from tkinter.ttk import *
 
 
+
 def make_nickname():
     return ''.join([choice(ascii_lowercase) for x in range(randint(5,10))])
 

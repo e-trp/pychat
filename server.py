@@ -2,6 +2,8 @@
 #-*- coding: utf-8 -*-
 
 import threading, time, socket
+import database
+
 
 def now():
     return time.ctime(time.time())
@@ -21,6 +23,7 @@ class ChatServer(object):
             "send_pm": "pm from {}: {}",
             "welcome":"Welcome to chat server, please enter your nickname: \r\n"
         }
+        self.db = database.Database("chat.db")
 
     def userlist(self):
         return self.connections.keys()
@@ -66,10 +69,13 @@ class ChatServer(object):
             if not data: break
             data=data.decode('utf-8')
             check=data.split(' ')[0].rstrip(',')
+            msg=' '.join(data.split(' ')[1:])
             if check[0]=='@':
-                self.send_to_user( check[1:], ' '.join(data.split(' ')[1:]) )
+                self.send_to_user( check[1:], msg )
+                self.db.insert(name_from=connection[0], name_to=check[1:], message=msg)
             else:
                 self.send_to_all(self.msgs["send_to_all"].format(connection[0], data))
+                self.db.insert(name_from=connection[0], name_to='all', message=msg)
         self.close_connection(connection)
 
 if __name__=="__main__":
