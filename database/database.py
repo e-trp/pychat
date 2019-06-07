@@ -49,7 +49,4 @@ class Database(object):
 
 
 
-if __name__=="__main__":
-    db=Database("test.db")
-    db.insert(name_from="name1",name_to="name2",message="messgae")
-    print(db.select())
+
