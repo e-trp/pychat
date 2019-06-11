@@ -30,7 +30,7 @@ class Client(object):
     def start(self):
         try:
             self.socket.connect((self.__host, self.__port))
-            self.socket.recv(100)
+            self.socket.recv(1024)
             self.socket.send(self.nickname.encode())
         except:
             return (0, 'Can not connect to the server...\r\n')
@@ -40,13 +40,15 @@ class Client(object):
 
     def chat_loop(self):
         while True:
-            data = self.socket.recv(1024)
-            if not data:
+            bdata = self.socket.recv(1024)
+            if not bdata:
                 break
-            if data.decode().split()[0]=='!list':
-                self.updatelist(data.decode())
+            if bdata.decode().split()[0]=='!list':
+                self.updatelist(bdata.decode())
             else:
-                self.chatframe.insert(tk.END, data.decode('utf-8') + '\r\n')
+                str_data=bdata.decode("utf-8").split(';')[:-1]
+                for i in str_data:
+                    self.chatframe.insert(tk.END, i + '\r\n')
         self.socket.close()
 
     def send_message(self, msg):

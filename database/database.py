@@ -26,23 +26,18 @@ class Database(object):
         cursor.execute(self.sql["create"])
         cursor.close()
 
-    def select(self, name=''):
+    def select(self):
         result=[]
         cursor=self.conn.cursor()
-        if name == '':
-            cursor.execute(self.sql["select"]+"where from_name=?", (name,))
-        else:
-            cursor.execute(self.sql["select"])
+        cursor.execute(self.sql["select"])
         result=cursor.fetchall()
         cursor.close()
         return result
 
 
 
-    def insert(self, name_from, message, name_to=''):
+    def insert(self, name_from, name_to, message):
         cursor=self.conn.cursor()
-        if name_to=='':
-            name_to='all'
         cursor.execute(self.sql["insert"],(name_from, name_to, message))
         self.conn.commit()
         cursor.close()

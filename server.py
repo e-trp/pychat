@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
-import threading, time, socket
+import threading
+import time
+import socket
 import database
 
 
@@ -19,14 +21,22 @@ class ChatServer(object):
             "start": "Starting server on port {} and host '{}'\n",
             "connect": "{} user '{}'{} connected",
             "user_left": "{} user '{}' left from chat",
-            "send_to_all":"{}: {}",
-            "send_pm": "pm from {}: {}",
+            "send_to_all":"{}: {};",
+            "send_pm": "pm from {}: {};",
             "welcome":"Welcome to chat server, please enter your nickname: \r\n"
         }
         self.db = database.Database("chat.db")
 
     def userlist(self):
         return self.connections.keys()
+
+    def send_history(self, conn):
+        rows=self.db.select()
+        for row in rows:
+            if row[1]=='all':
+                conn[1].send(self.msgs["send_to_all"].format(row[0],row[2]).encode())
+            if conn[0]==row[1]:
+                conn[1].send(self.msgs["send_pm"].format(row[0],row[2]).encode())
 
     def close_connection(self, connection):
         self.connections.pop(connection[0])
@@ -61,6 +71,7 @@ class ChatServer(object):
 
 
     def client_handle(self, connection):
+        self.send_history(connection)
         while True:
             try:
                 data = connection[1].recv(1024)
@@ -70,12 +81,13 @@ class ChatServer(object):
             data=data.decode('utf-8')
             check=data.split(' ')[0].rstrip(',')
             msg=' '.join(data.split(' ')[1:])
+
             if check[0]=='@':
                 self.send_to_user( check[1:], msg )
-                self.db.insert(name_from=connection[0], name_to=check[1:], message=msg)
+                self.db.insert(connection[0], check[1:], data)
             else:
                 self.send_to_all(self.msgs["send_to_all"].format(connection[0], data))
-                self.db.insert(name_from=connection[0], name_to='all', message=msg)
+                self.db.insert(connection[0], 'all', data)
         self.close_connection(connection)
 
 if __name__=="__main__":
